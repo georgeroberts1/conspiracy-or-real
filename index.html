@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14110f">
+<link rel="icon" href="data:,">
+<title>Conspiracy or Real?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" media="print" onload="this.media='all'">
+<style>
+*{box-sizing:border-box}
+html{color-scheme:dark;touch-action:manipulation;-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;min-height:100dvh;display:flex;justify-content:center;
+  padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='360'%3E%3Cpath d='M20 40L180 120 340 60M180 120L120 300 300 330 340 60M20 40L120 300' fill='none' stroke='%23c1272d' stroke-opacity='.22' stroke-width='1.5'/%3E%3Cg fill='%23c1272d' fill-opacity='.4'%3E%3Ccircle cx='20' cy='40' r='4'/%3E%3Ccircle cx='180' cy='120' r='4'/%3E%3Ccircle cx='340' cy='60' r='4'/%3E%3Ccircle cx='120' cy='300' r='4'/%3E%3Ccircle cx='300' cy='330' r='4'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 50% 0%,#2a211b,#14110f 70%);
+  background-color:#14110f;color:#f1e6c8;
+  font:1rem/1.45 "Special Elite","Courier New",Courier,monospace;-webkit-tap-highlight-color:transparent}
+main{width:min(100%,520px);margin-block:0 auto;display:flex;flex-direction:column;gap:14px;padding-top:clamp(8px,5vh,48px)}
+p,h1,h2{margin:0;font-weight:normal;overflow-wrap:anywhere}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+[tabindex="-1"]{outline:none}
+.hud{display:flex;justify-content:space-between;font-size:.95rem;letter-spacing:.1em;text-transform:uppercase;color:#e8d3a0}
+.bar{height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
+.bar i{display:block;height:100%;background:#c1272d;transition:width .3s}
+.card{position:relative;margin-top:22px;padding:26px 20px 22px;border-radius:4px 10px 10px 10px;overflow-x:clip;
+  background:linear-gradient(180deg,#ecd9a8,#e2c88c);color:#2a2118;
+  box-shadow:0 10px 30px rgba(0,0,0,.55),inset 0 0 40px rgba(120,80,20,.2)}
+.card::before{content:attr(data-tab);position:absolute;left:0;top:-22px;height:22px;padding:0 14px;border-radius:8px 8px 0 0;
+  background:#e6cf98;color:#5a4528;font-size:.75rem;line-height:22px;letter-spacing:.14em}
+.card h1{font-size:clamp(1.6rem,7vw,2.3rem);line-height:1.2;text-align:center}
+.card h1+p{margin-top:12px;text-align:center}
+.claim{font-size:1.2rem;line-height:1.5}
+.big{font-size:clamp(3rem,18vw,4.5rem);line-height:1;text-align:center}
+.card h2{margin-top:10px;font-size:1.4rem;line-height:1.3;text-align:center}
+.stamp{display:block;width:max-content;max-width:100%;margin:22px auto 20px;padding:4px 14px;border:4px solid currentColor;border-radius:6px;
+  color:#c1272d;font-size:clamp(1.3rem,7vw,2.2rem);letter-spacing:.12em;opacity:.88;mix-blend-mode:multiply;
+  transform:rotate(-8deg);animation:thump .45s cubic-bezier(.2,1.4,.4,1) both}
+.stamp{-webkit-user-select:none;user-select:none}
+.stamp.blue{color:#2b4a9a}
+.verdict{margin-top:10px;font-size:1.15rem}
+.verdict.ok{color:#1d6b3a}
+.verdict.no{color:#9b1c24}
+.big{margin-top:10px}
+.sub{margin-top:24px;text-align:center;font-size:1.1rem}
+.field{margin-top:18px}
+.field label{display:block;margin-bottom:6px;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:#5a4528}
+.field input{display:block;width:100%;min-height:52px;padding:10px 12px;border:2px solid #8a6a3a;border-radius:8px;
+  background:rgba(255,255,255,.55);color:#2a2118;font:inherit;font-size:1.2rem}
+.field input:focus-visible{outline:3px solid #c1272d;outline-offset:2px}
+.explain{margin-top:10px;padding-top:10px;border-top:2px dashed rgba(42,33,24,.35);font-size:.95rem;color:#4a3a26}
+.choices{display:grid;gap:12px}
+.btn{font:inherit;font-size:1.25rem;letter-spacing:.06em;width:100%;min-height:60px;padding:12px 16px;border:3px solid;border-radius:12px;
+  cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none;transition:transform .08s}
+.btn:active{transform:scale(.97)}
+.btn:focus-visible{outline:3px solid #ffd166;outline-offset:3px}
+.real{background:#1d6b57;border-color:#2e9b7f;color:#f3ffe9}
+.fake{background:#5b3aa0;border-color:#8a6bd6;color:#f5eeff}
+.primary{background:#e8d3a0;border-color:#f6e7bf;color:#2a2118}
+.ghost{background:transparent;border-color:#e8d3a0;color:#e8d3a0}
+.enter{animation:slide .35s ease-out both}
+#toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translate(-50%,20px);padding:10px 20px;border-radius:999px;
+  background:#e8d3a0;color:#2a2118;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@keyframes slide{from{opacity:0;transform:translateX(32px)}}
+@keyframes thump{0%{opacity:0;transform:rotate(-8deg) scale(2.6)}60%{opacity:.88}100%{transform:rotate(-8deg) scale(1)}}
+@media (hover:hover){.btn:hover{filter:brightness(1.12)}}
+@media (min-width:480px){.choices{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){
+  .enter,.stamp{animation:none}
+  .btn,.bar i,#toast{transition:none}
+}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<div id="live" class="sr" aria-live="polite"></div>
+<div id="toast" role="status"></div>
+
+<script>
+/* =====================================================================
+   EDIT ME — constants. Everything you might want to change is in this block.
+   ===================================================================== */
+
+// Fallback player name, used only when the name field is left empty.
+// Players type their own name on the start screen; it replaces {name} in the text.
+const DEFAULT_NAME = "Agent";
+
+// How many of each kind go into one game (total = 2 x this).
+const REAL_PER_GAME = 10;
+const FAKE_PER_GAME = 10;
+
+// End-screen ranks. First entry whose `max` >= score wins. Keep sorted ascending.
+const RANKS = [
+  { max: 7,  title: "Fell asleep during the briefing 😴" },
+  { max: 12, title: "Junior Agent, Still Learning the Language" },
+  { max: 16, title: "Senior Analyst of Suspicious Things" },
+  { max: 19, title: "Deputy Director of Weird" },
+  { max: 20, title: "You ARE the conspiracy 👁️" },
+];
+
+// The claims. real: true = it happened, false = we made it up.
+const CLAIMS = [
+  // ---------------- REAL ----------------
+  { real: true, text: "From 1952 to 1969 the US Air Force officially investigated more than 12,000 UFO sightings under Project Blue Book.", explain: "True. Most were explained; a few hundred were never identified." },
+  { real: true, text: "The Pentagon ran a secret programme to study UFOs, revealed in 2017.", explain: "True. It was called AATIP, the Advanced Aerospace Threat Identification Program." },
+  { real: true, text: "In 2020 the Pentagon officially released three Navy videos of \"unidentified aerial phenomena\".", explain: "True. They're often called the \"Tic Tac\", \"Gimbal\" and \"GoFast\" videos." },
+  { real: true, text: "The US government didn't officially admit Area 51 existed until 2013.", explain: "True. It was acknowledged in declassified CIA documents." },
+  { real: true, text: "In 1977 a radio telescope in Ohio picked up a strong 72-second signal from space that has never been conclusively explained.", explain: "True. It's the \"Wow! signal\", named after what the astronomer scribbled next to it." },
+  { real: true, text: "In 1997 thousands of people in Arizona saw huge formations of lights in the sky.", explain: "True. It's known as the Phoenix Lights. The military later said at least some of them were flares." },
+  { real: true, text: "In 1561 a printed news sheet in Nuremberg reported crowds watching orbs, crosses and cylinders \"battling\" in the sky.", explain: "True. It's one of the most famous early \"UFO\" reports." },
+  { real: true, text: "The US government funded \"psychic spies\" to do remote viewing from the 1970s until 1995.", explain: "True. It was known as Project Stargate." },
+  { real: true, text: "In the 1960s the CIA tried to implant a microphone in a cat to eavesdrop.", explain: "True. It was called Operation Acoustic Kitty and it didn't work." },
+  { real: true, text: "In the late 1950s the US Air Force studied detonating a nuclear bomb on the Moon.", explain: "True. It was Project A119, intended as a show of strength during the space race." },
+  { real: true, text: "During WWII, the psychologist B.F. Skinner trained pigeons to guide missiles by pecking at a target on a screen.", explain: "True. It was Project Pigeon. The pigeons were good at it, but it was never used." },
+  { real: true, text: "In WWII, Britain spread the story that carrots gave its pilots night vision.", explain: "True. It was a cover story to hide the fact that they were using radar." },
+  { real: true, text: "In WWII, a US Army unit used inflatable tanks and fake radio chatter to fool the enemy.", explain: "True. It was known as the Ghost Army." },
+  { real: true, text: "During the Cold War, the CIA secretly helped promote American abstract art.", explain: "True. It worked through front organisations, to show off \"American freedom\"." },
+  { real: true, text: "In 1924 the major light bulb makers agreed to limit bulbs to about 1,000 hours of life so people would buy more.", explain: "True. It was the Phoebus cartel." },
+  { real: true, text: "In the 1960s the sugar industry paid Harvard scientists to play down sugar's role in heart disease.", explain: "True. The scientists blamed fat instead, and the documents came to light in 2016." },
+  { real: true, text: "In 2017 Apple admitted it had been slowing down older iPhones.", explain: "True. It became known as \"Batterygate\" and Apple later settled lawsuits over it." },
+  { real: true, text: "Volkswagen used secret software to cheat on emissions tests.", explain: "True. The \"Dieselgate\" scandal broke in 2015." },
+  { real: true, text: "Two young cousins faked photos of fairies that fooled the Sherlock Holmes author Arthur Conan Doyle.", explain: "True. These are the Cottingley Fairies. The cousins admitted the hoax in 1983." },
+  { real: true, text: "In 1932 the Australian army was sent with machine guns to deal with emus, and the emus essentially won.", explain: "True. It's known as the Great Emu War." },
+
+  // ---------------- MADE UP ----------------
+  { real: false, text: "In 1974 NASA quietly added a \"greeting chamber\" to the Skylab space station in case astronauts met aliens.", explain: "Made up. No such room existed on Skylab." },
+  { real: false, text: "A 1952 US Air Force study found most UFO sightings happened on Tuesdays and recommended grounding pilots that day.", explain: "Made up. Project Blue Book was real, but this finding wasn't." },
+  { real: false, text: "After a Scottish fishing town all reported the same glowing triangle in 1983, the Ministry of Defence paid each resident £50 to stay quiet.", explain: "Made up. No town was ever paid to keep quiet." },
+  { real: false, text: "The Voyager Golden Record sent into space originally included a recipe for apple pie, which was removed at the last minute.", explain: "Made up. The Golden Record is real, but it had no recipes." },
+  { real: false, text: "In 1979 a Canadian university offered a degree in \"Extraterrestrial Diplomacy\", and three students graduated.", explain: "Made up. Nobody has graduated in alien diplomacy, yet." },
+  { real: false, text: "During the Cold War, MI5 trained hedgehogs to carry listening devices under the hedges of embassy gardens.", explain: "Made up. The CIA's cat was real; MI5's hedgehogs were not." },
+  { real: false, text: "In WWII, Britain trained parrots to memorise and repeat German radio codes.", explain: "Made up. Pigeons were used in WWII; parrots weren't." },
+  { real: false, text: "The KGB ran a fake ballet school in Paris to recruit dancers as spies.", explain: "Made up." },
+  { real: false, text: "In the 1970s the Pentagon funded research into whether soldiers could be kept awake for a week by playing recordings of laughter.", explain: "Made up. The psychic spies were real; this wasn't." },
+  { real: false, text: "In 1962 the Soviet Union trained seagulls to spot American submarines.", explain: "Made up." },
+  { real: false, text: "In the 1950s, chewing gum makers secretly agreed to make gum lose its flavour faster so people would buy more.", explain: "Made up. The light bulb cartel was real, though." },
+  { real: false, text: "In 1931 pencil manufacturers agreed to make erasers wear out before the pencil did.", explain: "Made up." },
+  { real: false, text: "In 1971 a British tea company secretly switched to smaller leaves so its bags brewed weaker and people would use two.", explain: "Made up. Your tea is safe." },
+  { real: false, text: "In 1965 umbrella makers agreed to weaken the spokes so umbrellas would break in strong wind.", explain: "Made up. Umbrellas just break on their own." },
+  { real: false, text: "In 1890 a Belgian town was gripped by uncontrollable laughter that lasted six months.", explain: "Made up." },
+  { real: false, text: "In 1932 the British Army was sent to a Scottish island to wipe out rabbits, and the rabbits won.", explain: "Made up. The Emu War was real; the Rabbit War wasn't." },
+  { real: false, text: "In 1956 a Dutch village set all its clocks to run backwards for a year as a protest.", explain: "Made up." },
+  { real: false, text: "In 1964 a Harvard psychologist taught a whole term without ever appearing in person. Students only heard his voice, and their exam scores went up.", explain: "Made up. It's a nice idea, though." },
+  { real: false, text: "In 1974 Swedish researchers paid volunteers to watch the same film every night for a month to see whether they'd fall asleep sooner each time.", explain: "Made up. But {name} could have been their star participant 😴" },
+  { real: false, text: "In the 1960s a Swiss linguist claimed bilingual people dream in a third, invented language, and the government funded a five-year study into it.", explain: "Made up. Mixing languages is normal \"code-switching\" in bilingual brains, though, so {name} is fine." },
+];
+
+/* ===================== end of editable constants ===================== */
+
+/* state machine */
+const NAME_KEY = "conspiracy-or-real-name";
+const loadName = () => {
+  try {
+    return localStorage.getItem(NAME_KEY) || "";
+  } catch {
+    return "";
+  }
+};
+const saveName = (name) => {
+  try {
+    localStorage.setItem(NAME_KEY, name);
+  } catch {}
+};
+const cleanName = (s) => s.trim().replace(/\s+/g, " ");
+
+const state = { phase: "start", name: cleanName(loadName()) || DEFAULT_NAME, deck: [], index: 0, score: 0, answer: null };
+let revealedAt = 0;
+
+const shuffle = (a) => {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+const pick = (real, n) => shuffle(CLAIMS.filter((c) => c.real === real)).slice(0, n);
+const buildDeck = () => shuffle([...pick(true, REAL_PER_GAME), ...pick(false, FAKE_PER_GAME)]);
+const rankFor = (score) => (RANKS.find((r) => r.max >= score) || RANKS[RANKS.length - 1]).title;
+
+function start(rawName) {
+  if (state.phase !== "start") return false;
+  const typed = cleanName(rawName);
+  saveName(typed);
+  Object.assign(state, { phase: "question", name: typed || DEFAULT_NAME, deck: buildDeck(), index: 0, score: 0, answer: null });
+  return true;
+}
+
+function again() {
+  if (state.phase !== "end") return false;
+  state.phase = "start";
+  return true;
+}
+
+function answer(real) {
+  if (state.phase !== "question") return false;
+  state.answer = real;
+  if (real === state.deck[state.index].real) state.score++;
+  state.phase = "revealed";
+  revealedAt = Date.now();
+  return true;
+}
+
+function next() {
+  if (state.phase !== "revealed" || Date.now() - revealedAt < 400) return false;
+  if (state.index === state.deck.length - 1) {
+    state.phase = "end";
+  } else {
+    state.index++;
+    state.answer = null;
+    state.phase = "question";
+  }
+  return true;
+}
+
+/* views */
+const app = document.getElementById("app");
+const live = document.getElementById("live");
+const toast = document.getElementById("toast");
+
+const hud = () => {
+  const done = state.index + (state.phase === "revealed" ? 1 : 0);
+  return `<div class="hud"><span>Case ${state.index + 1}/${state.deck.length}</span><span>Score ${state.score}</span></div>
+<div class="bar"><i style="width:${(done / state.deck.length) * 100}%"></i></div>`;
+};
+
+const NAME_SLOT = '<span data-name></span>';
+const withName = (text) => text.replace(/\{name\}/g, NAME_SLOT);
+const plainName = (text) => text.replace(/\{name\}/g, () => state.name);
+
+const claimCard = (extra = "") => {
+  const c = state.deck[state.index];
+  return `<section class="card${state.phase === "question" ? " enter" : ""}" data-tab="FILE ${String(state.index + 1).padStart(2, "0")}"${state.phase === "question" ? " data-f" : ""} tabindex="-1">
+<p class="claim">${c.text}</p>${extra}</section>`;
+};
+
+const views = {
+  start: () => `<section class="card enter" data-tab="TOP SECRET" tabindex="-1">
+<div class="stamp">CLASSIFIED</div>
+<h1>Conspiracy or Real? — The ${NAME_SLOT} Files</h1>
+<p>Some of these really happened. Some we made up. Trust no one.</p>
+<div class="field"><label for="name">Your name, agent</label>
+<input id="name" type="text" maxlength="24" autocomplete="given-name" autocapitalize="words" enterkeyhint="go"></div></section>
+<button class="btn primary" data-act="start">Start</button>`,
+
+  question: () => `${hud()}${claimCard()}
+<div class="choices">
+<button class="btn real" data-act="answer" data-v="1">REAL 📁</button>
+<button class="btn fake" data-act="answer" data-v="0">MADE UP 🛸</button></div>`,
+
+  revealed: () => {
+    const c = state.deck[state.index];
+    const right = state.answer === c.real;
+    const last = state.index === state.deck.length - 1;
+    return `${hud()}${claimCard(`<div class="stamp${c.real ? "" : " blue"}">${c.real ? "DECLASSIFIED" : "DEBUNKED"}</div>
+<p class="verdict ${right ? "ok" : "no"}">${verdict()}</p><p class="explain">${withName(c.explain)}</p>`)}
+<button class="btn primary" data-act="next" data-f>${last ? "See my file 📂" : "Next"}</button>`;
+  },
+
+  end: () => `<section class="card enter" data-tab="FINAL REPORT" data-f tabindex="-1">
+<div class="stamp">CASE CLOSED</div>
+<p class="sub">${NAME_SLOT}'s final file</p>
+<p class="big">${state.score}/${state.deck.length}</p>
+<h2>${rankFor(state.score)}</h2></section>
+<button class="btn primary" data-act="again">Play again</button>
+<button class="btn ghost" data-act="copy">Copy my score</button>`,
+};
+
+function verdict() {
+  const c = state.deck[state.index];
+  const right = state.answer === c.real;
+  return `${right ? "Right! 🎯" : "Wrong! 💥"} This one was ${c.real ? "real" : "made up"}.`;
+}
+
+const fillNames = () => {
+  app.querySelectorAll("[data-name]").forEach((el) => (el.textContent = state.name));
+};
+
+function render() {
+  app.innerHTML = views[state.phase]();
+  fillNames();
+  if (state.phase === "start") {
+    const input = document.getElementById("name");
+    input.value = state.name === DEFAULT_NAME ? "" : state.name;
+    input.placeholder = DEFAULT_NAME;
+  }
+  live.textContent = state.phase === "revealed" ? `${verdict()} ${plainName(state.deck[state.index].explain)}` : "";
+}
+
+/* events */
+const actions = {
+  start: () => start(document.getElementById("name").value),
+  again,
+  answer: (btn) => answer(btn.dataset.v === "1"),
+  next,
+};
+
+let toastTimer;
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+    toast.textContent = "";
+  }, 1800);
+}
+
+function legacyCopy(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.cssText = "position:fixed;top:0;opacity:0";
+  document.body.append(ta);
+  ta.select();
+  const ok = document.execCommand("copy");
+  ta.remove();
+  return ok;
+}
+
+async function copyScore(btn) {
+  const text = `I scored ${state.score}/${state.deck.length} on Conspiracy or Real? 🛸\n${location.href}`;
+  let ok = true;
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    ok = legacyCopy(text);
+  }
+  btn.focus();
+  showToast(ok ? "Copied!" : "Couldn't copy. Screenshot it instead!");
+}
+
+function run(btn) {
+  if (btn.dataset.act === "copy") return copyScore(btn);
+  if (actions[btn.dataset.act](btn)) {
+    render();
+    const f = app.querySelector("[data-f]");
+    if (f) f.focus();
+  }
+}
+
+app.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-act]");
+  if (btn) run(btn);
+});
+
+app.addEventListener("input", (e) => {
+  if (e.target.id !== "name") return;
+  state.name = cleanName(e.target.value) || DEFAULT_NAME;
+  fillNames();
+});
+
+app.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.id === "name" && !e.isComposing) {
+    e.preventDefault();
+    run(app.querySelector('[data-act="start"]'));
+  }
+});
+
+render();
+</script>
+</body>
+</html>
