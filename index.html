@@ -4,8 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#14110f">
-<link rel="icon" href="data:,">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314110f'/%3E%3Cpath d='M10 16L32 28 54 20M32 28L22 50 48 52 54 20M10 16L22 50' fill='none' stroke='%23c1272d' stroke-opacity='.55' stroke-width='2'/%3E%3Ccircle cx='32' cy='32' r='19' fill='%23e8d3a0'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='Georgia,serif' font-size='34' font-weight='bold' fill='%23c1272d'%3E?%3C/text%3E%3C/svg%3E">
 <title>Conspiracy or Real?</title>
+<meta name="description" content="Some of these really happened. Some we made up. Can you tell which?">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Conspiracy or Real?">
+<meta property="og:description" content="Some of these really happened. Some we made up. Can you tell which?">
+<meta name="twitter:card" content="summary">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" media="print" onload="this.media='all'">
@@ -47,11 +52,19 @@ p,h1,h2{margin:0;font-weight:normal;overflow-wrap:anywhere}
 .big{margin-top:10px}
 .sub{margin-top:24px;text-align:center;font-size:1.1rem}
 .field{margin-top:18px}
-.field label{display:block;margin-bottom:6px;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:#5a4528}
+.field label,.field .lbl{display:block;margin-bottom:6px;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:#5a4528}
+.rounds{display:flex;gap:8px}
+.round{flex:1;min-height:52px;padding:8px 4px;border:2px solid #8a6a3a;border-radius:8px;background:rgba(255,255,255,.35);color:#2a2118;
+  font:inherit;font-size:1.2rem;cursor:pointer;touch-action:manipulation}
+.round[aria-pressed="true"]{background:#2a2118;border-color:#2a2118;color:#ecd9a8}
+.round:focus-visible{outline:3px solid #c1272d;outline-offset:2px}
 .field input{display:block;width:100%;min-height:52px;padding:10px 12px;border:2px solid #8a6a3a;border-radius:8px;
   background:rgba(255,255,255,.55);color:#2a2118;font:inherit;font-size:1.2rem}
 .field input:focus-visible{outline:3px solid #c1272d;outline-offset:2px}
 .explain{margin-top:10px;padding-top:10px;border-top:2px dashed rgba(42,33,24,.35);font-size:.95rem;color:#4a3a26}
+.wiki{margin-top:10px;font-size:.95rem}
+.wiki a{display:inline-block;padding:6px 0;color:#2b4a9a;text-underline-offset:3px}
+.wiki a:focus-visible{outline:3px solid #c1272d;outline-offset:2px}
 .choices{display:grid;gap:12px}
 .btn{font:inherit;font-size:1.25rem;letter-spacing:.06em;width:100%;min-height:60px;padding:12px 16px;border:3px solid;border-radius:12px;
   cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none;transition:transform .08s}
@@ -89,65 +102,126 @@ p,h1,h2{margin:0;font-weight:normal;overflow-wrap:anywhere}
 // Players type their own name on the start screen; it replaces {name} in the text.
 const DEFAULT_NAME = "Agent";
 
-// How many of each kind go into one game (total = 2 x this).
-const REAL_PER_GAME = 10;
-const FAKE_PER_GAME = 10;
+// Round counts players can choose from. Anything above the number of claims is clamped.
+// Each game is drawn at random from the claims, split evenly between real and made up.
+const ROUND_CHOICES = [5, 10, 20, 50, 100];
+const DEFAULT_ROUNDS = 10;
 
-// End-screen ranks. First entry whose `max` >= score wins. Keep sorted ascending.
+// End-screen ranks. First entry whose `max` (share of answers right, 0 to 1) >= your result wins. Keep sorted ascending.
 const RANKS = [
-  { max: 7,  title: "Fell asleep during the briefing 😴" },
-  { max: 12, title: "Junior Agent, Still Learning the Language" },
-  { max: 16, title: "Senior Analyst of Suspicious Things" },
-  { max: 19, title: "Deputy Director of Weird" },
-  { max: 20, title: "You ARE the conspiracy 👁️" },
+  { max: 0.35, title: "Fell asleep during the briefing 😴" },
+  { max: 0.6,  title: "Junior Agent, Still Learning the Language" },
+  { max: 0.8,  title: "Senior Analyst of Suspicious Things" },
+  { max: 0.95, title: "Deputy Director of Weird" },
+  { max: 1,    title: "You ARE the conspiracy 👁️" },
 ];
 
 // The claims. real: true = it happened, false = we made it up.
+// Generated from conspiracy.json by `node sync.js`. Edit the JSON, then run it. Don't edit between the markers.
+// <claims>
 const CLAIMS = [
-  // ---------------- REAL ----------------
-  { real: true, text: "From 1952 to 1969 the US Air Force officially investigated more than 12,000 UFO sightings under Project Blue Book.", explain: "True. Most were explained; a few hundred were never identified." },
-  { real: true, text: "The Pentagon ran a secret programme to study UFOs, revealed in 2017.", explain: "True. It was called AATIP, the Advanced Aerospace Threat Identification Program." },
-  { real: true, text: "In 2020 the Pentagon officially released three Navy videos of \"unidentified aerial phenomena\".", explain: "True. They're often called the \"Tic Tac\", \"Gimbal\" and \"GoFast\" videos." },
-  { real: true, text: "The US government didn't officially admit Area 51 existed until 2013.", explain: "True. It was acknowledged in declassified CIA documents." },
-  { real: true, text: "In 1977 a radio telescope in Ohio picked up a strong 72-second signal from space that has never been conclusively explained.", explain: "True. It's the \"Wow! signal\", named after what the astronomer scribbled next to it." },
-  { real: true, text: "In 1997 thousands of people in Arizona saw huge formations of lights in the sky.", explain: "True. It's known as the Phoenix Lights. The military later said at least some of them were flares." },
-  { real: true, text: "In 1561 a printed news sheet in Nuremberg reported crowds watching orbs, crosses and cylinders \"battling\" in the sky.", explain: "True. It's one of the most famous early \"UFO\" reports." },
-  { real: true, text: "The US government funded \"psychic spies\" to do remote viewing from the 1970s until 1995.", explain: "True. It was known as Project Stargate." },
-  { real: true, text: "In the 1960s the CIA tried to implant a microphone in a cat to eavesdrop.", explain: "True. It was called Operation Acoustic Kitty and it didn't work." },
-  { real: true, text: "In the late 1950s the US Air Force studied detonating a nuclear bomb on the Moon.", explain: "True. It was Project A119, intended as a show of strength during the space race." },
-  { real: true, text: "During WWII, the psychologist B.F. Skinner trained pigeons to guide missiles by pecking at a target on a screen.", explain: "True. It was Project Pigeon. The pigeons were good at it, but it was never used." },
-  { real: true, text: "In WWII, Britain spread the story that carrots gave its pilots night vision.", explain: "True. It was a cover story to hide the fact that they were using radar." },
-  { real: true, text: "In WWII, a US Army unit used inflatable tanks and fake radio chatter to fool the enemy.", explain: "True. It was known as the Ghost Army." },
-  { real: true, text: "During the Cold War, the CIA secretly helped promote American abstract art.", explain: "True. It worked through front organisations, to show off \"American freedom\"." },
-  { real: true, text: "In 1924 the major light bulb makers agreed to limit bulbs to about 1,000 hours of life so people would buy more.", explain: "True. It was the Phoebus cartel." },
-  { real: true, text: "In the 1960s the sugar industry paid Harvard scientists to play down sugar's role in heart disease.", explain: "True. The scientists blamed fat instead, and the documents came to light in 2016." },
-  { real: true, text: "In 2017 Apple admitted it had been slowing down older iPhones.", explain: "True. It became known as \"Batterygate\" and Apple later settled lawsuits over it." },
-  { real: true, text: "Volkswagen used secret software to cheat on emissions tests.", explain: "True. The \"Dieselgate\" scandal broke in 2015." },
-  { real: true, text: "Two young cousins faked photos of fairies that fooled the Sherlock Holmes author Arthur Conan Doyle.", explain: "True. These are the Cottingley Fairies. The cousins admitted the hoax in 1983." },
-  { real: true, text: "In 1932 the Australian army was sent with machine guns to deal with emus, and the emus essentially won.", explain: "True. It's known as the Great Emu War." },
-
-  // ---------------- MADE UP ----------------
-  { real: false, text: "In 1974 NASA quietly added a \"greeting chamber\" to the Skylab space station in case astronauts met aliens.", explain: "Made up. No such room existed on Skylab." },
-  { real: false, text: "A 1952 US Air Force study found most UFO sightings happened on Tuesdays and recommended grounding pilots that day.", explain: "Made up. Project Blue Book was real, but this finding wasn't." },
-  { real: false, text: "After a Scottish fishing town all reported the same glowing triangle in 1983, the Ministry of Defence paid each resident £50 to stay quiet.", explain: "Made up. No town was ever paid to keep quiet." },
-  { real: false, text: "The Voyager Golden Record sent into space originally included a recipe for apple pie, which was removed at the last minute.", explain: "Made up. The Golden Record is real, but it had no recipes." },
-  { real: false, text: "In 1979 a Canadian university offered a degree in \"Extraterrestrial Diplomacy\", and three students graduated.", explain: "Made up. Nobody has graduated in alien diplomacy, yet." },
-  { real: false, text: "During the Cold War, MI5 trained hedgehogs to carry listening devices under the hedges of embassy gardens.", explain: "Made up. The CIA's cat was real; MI5's hedgehogs were not." },
-  { real: false, text: "In WWII, Britain trained parrots to memorise and repeat German radio codes.", explain: "Made up. Pigeons were used in WWII; parrots weren't." },
-  { real: false, text: "The KGB ran a fake ballet school in Paris to recruit dancers as spies.", explain: "Made up." },
-  { real: false, text: "In the 1970s the Pentagon funded research into whether soldiers could be kept awake for a week by playing recordings of laughter.", explain: "Made up. The psychic spies were real; this wasn't." },
-  { real: false, text: "In 1962 the Soviet Union trained seagulls to spot American submarines.", explain: "Made up." },
-  { real: false, text: "In the 1950s, chewing gum makers secretly agreed to make gum lose its flavour faster so people would buy more.", explain: "Made up. The light bulb cartel was real, though." },
-  { real: false, text: "In 1931 pencil manufacturers agreed to make erasers wear out before the pencil did.", explain: "Made up." },
-  { real: false, text: "In 1971 a British tea company secretly switched to smaller leaves so its bags brewed weaker and people would use two.", explain: "Made up. Your tea is safe." },
-  { real: false, text: "In 1965 umbrella makers agreed to weaken the spokes so umbrellas would break in strong wind.", explain: "Made up. Umbrellas just break on their own." },
-  { real: false, text: "In 1890 a Belgian town was gripped by uncontrollable laughter that lasted six months.", explain: "Made up." },
-  { real: false, text: "In 1932 the British Army was sent to a Scottish island to wipe out rabbits, and the rabbits won.", explain: "Made up. The Emu War was real; the Rabbit War wasn't." },
-  { real: false, text: "In 1956 a Dutch village set all its clocks to run backwards for a year as a protest.", explain: "Made up." },
-  { real: false, text: "In 1964 a Harvard psychologist taught a whole term without ever appearing in person. Students only heard his voice, and their exam scores went up.", explain: "Made up. It's a nice idea, though." },
-  { real: false, text: "In 1974 Swedish researchers paid volunteers to watch the same film every night for a month to see whether they'd fall asleep sooner each time.", explain: "Made up. But {name} could have been their star participant 😴" },
-  { real: false, text: "In the 1960s a Swiss linguist claimed bilingual people dream in a third, invented language, and the government funded a five-year study into it.", explain: "Made up. Mixing languages is normal \"code-switching\" in bilingual brains, though, so {name} is fine." },
+  {"real":true,"text":"From 1952 to 1969 the US Air Force officially investigated more than 12,000 UFO sightings under Project Blue Book.","explain":"True. Most were explained; a few hundred were never identified.","wiki":"https://en.wikipedia.org/wiki/Project_Blue_Book"},
+  {"real":true,"text":"The Pentagon ran a secret programme to study UFOs, revealed in 2017.","explain":"True. It was called AATIP, the Advanced Aerospace Threat Identification Program.","wiki":"https://en.wikipedia.org/wiki/Advanced_Aerospace_Threat_Identification_Program"},
+  {"real":true,"text":"In 2020 the Pentagon officially released three Navy videos of \"unidentified aerial phenomena\".","explain":"True. They're often called the \"Tic Tac\", \"Gimbal\" and \"GoFast\" videos.","wiki":"https://en.wikipedia.org/wiki/Pentagon_UFO_videos"},
+  {"real":true,"text":"The US government didn't officially admit Area 51 existed until 2013.","explain":"True. It was acknowledged in declassified CIA documents.","wiki":"https://en.wikipedia.org/wiki/Area_51"},
+  {"real":true,"text":"In 1977 a radio telescope in Ohio picked up a strong 72-second signal from space that has never been conclusively explained.","explain":"True. It's the \"Wow! signal\", named after what the astronomer scribbled next to it.","wiki":"https://en.wikipedia.org/wiki/Wow!_signal"},
+  {"real":true,"text":"In 1997 thousands of people in Arizona saw huge formations of lights in the sky.","explain":"True. It's known as the Phoenix Lights. The military later said at least some of them were flares.","wiki":"https://en.wikipedia.org/wiki/Phoenix_Lights"},
+  {"real":true,"text":"In 1561 a printed news sheet in Nuremberg reported crowds watching orbs, crosses and cylinders \"battling\" in the sky.","explain":"True. It's one of the most famous early \"UFO\" reports.","wiki":"https://en.wikipedia.org/wiki/1561_celestial_phenomenon_over_Nuremberg"},
+  {"real":true,"text":"The US government funded \"psychic spies\" to do remote viewing from the 1970s until 1995.","explain":"True. It was known as Project Stargate.","wiki":"https://en.wikipedia.org/wiki/Stargate_Project"},
+  {"real":true,"text":"In the 1960s the CIA tried to implant a microphone in a cat to eavesdrop.","explain":"True. It was called Operation Acoustic Kitty and it didn't work.","wiki":"https://en.wikipedia.org/wiki/Acoustic_Kitty"},
+  {"real":true,"text":"In the late 1950s the US Air Force studied detonating a nuclear bomb on the Moon.","explain":"True. It was Project A119, intended as a show of strength during the space race.","wiki":"https://en.wikipedia.org/wiki/Project_A119"},
+  {"real":true,"text":"During WWII, the psychologist B.F. Skinner trained pigeons to guide missiles by pecking at a target on a screen.","explain":"True. It was Project Pigeon. The pigeons were good at it, but it was never used.","wiki":"https://en.wikipedia.org/wiki/Project_Pigeon"},
+  {"real":true,"text":"In WWII, Britain spread the story that carrots gave its pilots night vision.","explain":"True. It was a cover story to hide the fact that they were using radar.","wiki":"https://en.wikipedia.org/wiki/Carrot"},
+  {"real":true,"text":"In WWII, a US Army unit used inflatable tanks and fake radio chatter to fool the enemy.","explain":"True. It was known as the Ghost Army.","wiki":"https://en.wikipedia.org/wiki/Ghost_Army"},
+  {"real":true,"text":"During the Cold War, the CIA secretly helped promote American abstract art.","explain":"True. It worked through front organisations, to show off \"American freedom\".","wiki":"https://en.wikipedia.org/wiki/Cultural_Cold_War"},
+  {"real":true,"text":"In 1924 the major light bulb makers agreed to limit bulbs to about 1,000 hours of life so people would buy more.","explain":"True. It was the Phoebus cartel.","wiki":"https://en.wikipedia.org/wiki/Phoebus_cartel"},
+  {"real":true,"text":"In the 1960s the sugar industry paid Harvard scientists to play down sugar's role in heart disease.","explain":"True. The scientists blamed fat instead, and the documents came to light in 2016.","wiki":"https://en.wikipedia.org/wiki/Sugar_Association"},
+  {"real":true,"text":"In 2017 Apple admitted it had been slowing down older iPhones.","explain":"True. It became known as \"Batterygate\" and Apple later settled lawsuits over it.","wiki":"https://en.wikipedia.org/wiki/Batterygate"},
+  {"real":true,"text":"Volkswagen used secret software to cheat on emissions tests.","explain":"True. The \"Dieselgate\" scandal broke in 2015.","wiki":"https://en.wikipedia.org/wiki/Volkswagen_emissions_scandal"},
+  {"real":true,"text":"Two young cousins faked photos of fairies that fooled the Sherlock Holmes author Arthur Conan Doyle.","explain":"True. These are the Cottingley Fairies. The cousins admitted the hoax in 1983.","wiki":"https://en.wikipedia.org/wiki/Cottingley_Fairies"},
+  {"real":true,"text":"In 1932 the Australian army was sent with machine guns to deal with emus, and the emus essentially won.","explain":"True. It's known as the Great Emu War.","wiki":"https://en.wikipedia.org/wiki/Emu_War"},
+  {"real":true,"text":"In 1978 22 French air traffic controllers watched a radar blip fly over Paris at 6,000 mph before vanishing.","explain":"True. The incident was officially investigated by GEIPAN, France's government UFO agency."},
+  {"real":true,"text":"Between 1989 and 1990 thousands of people in Belgium reported seeing silent, low-flying black triangles, prompting the Air Force to scramble fighter jets.","explain":"True. Known as the Belgian UFO wave, it remains officially unexplained.","wiki":"https://en.wikipedia.org/wiki/Belgian_UFO_wave"},
+  {"real":true,"text":"In 1977 the Brazilian Air Force launched a secret mission called Operation Saucer to investigate glowing lights allegedly attacking locals in the Amazon.","explain":"True. Hundreds of pages of photographs and sketches were declassified decades later.","wiki":"https://en.wikipedia.org/wiki/Opera%C3%A7%C3%A3o_Prato"},
+  {"real":true,"text":"In 1986 the crew of a Japan Air Lines cargo flight reported being followed over Alaska by three giant glowing objects.","explain":"True. Radar data backed up parts of the crew's account.","wiki":"https://en.wikipedia.org/wiki/Japan_Air_Lines_Cargo_Flight_1628"},
+  {"real":true,"text":"In 1945 Soviet schoolchildren gifted the US Ambassador a wooden carving of the US Seal that secretly hid a battery-free listening device.","explain":"True. Known as \"The Thing\", it hung in the ambassador's Moscow residence for seven years before being discovered.","wiki":"https://en.wikipedia.org/wiki/The_Thing_(listening_device)"},
+  {"real":true,"text":"During the Cold War, the Soviet Union mapped the entire world in extreme detail, including secret military bases and bridge weight limits in Western cities.","explain":"True. Soviet military maps were often more accurate than local street maps."},
+  {"real":true,"text":"In the 1960s the Soviet Union trained bottlenose dolphins to detect underwater mines and enemy divers.","explain":"True. Both the USSR and the US ran military marine mammal programmes.","wiki":"https://en.wikipedia.org/wiki/Military_marine_mammal"},
+  {"real":true,"text":"In 1962 a laughter epidemic broke out in Tanzania, affecting around 1,000 people and forcing 14 schools to temporarily close.","explain":"True. The Tanganyika laughter epidemic lasted for several months.","wiki":"https://en.wikipedia.org/wiki/Tanganyika_laughter_epidemic"},
+  {"real":true,"text":"In 1518 hundreds of people in Strasbourg, France, danced uncontrollably in the streets for weeks, with some collapsing from exhaustion.","explain":"True. It's known as the Dancing Plague of 1518.","wiki":"https://en.wikipedia.org/wiki/Dancing_plague_of_1518"},
+  {"real":true,"text":"In 1958 China launched a nationwide campaign to wipe out sparrows because they ate grain, which accidentally triggered a locust plague and famine.","explain":"True. It was part of the Four Pests campaign.","wiki":"https://en.wikipedia.org/wiki/Four_Pests_campaign"},
+  {"real":true,"text":"In 1964 a Swedish journalist exhibited paintings created by a chimpanzee under a fake French artist's name, and a critic praised the \"delicate\" brushwork.","explain":"True. The artist \"Pierre Brassau\" was actually Peter, a four-year-old chimp from Borås Zoo.","wiki":"https://en.wikipedia.org/wiki/Pierre_Brassau"},
+  {"real":true,"text":"In the late 1970s the South African military ran a secret programme attempting to turn gay soldiers straight using aversion therapy.","explain":"True. Known as the Aversion Project, it was exposed after the end of apartheid.","wiki":"https://en.wikipedia.org/wiki/The_Aversion_Project"},
+  {"real":true,"text":"In 1988 Italian scientists published a paper claiming water could \"remember\" substances dissolved in it even after being diluted to nothing.","explain":"True. Jacques Benveniste's \"water memory\" study caused a massive scientific scandal.","wiki":"https://en.wikipedia.org/wiki/Water_memory"},
+  {"real":true,"text":"In 1995 a Tokyo doomsday cult secretly manufactured sarin nerve gas and released it on the city's subway system.","explain":"True. Aum Shinrikyo carried out the attack, shocking Japan and the world.","wiki":"https://en.wikipedia.org/wiki/Tokyo_subway_sarin_attack"},
+  {"real":true,"text":"During WWII, Polish soldiers adopted a Syrian brown bear named Wojtek, officially enlisting him as a private so he could travel with them and carry artillery shells.","explain":"True. Wojtek was eventually promoted to corporal and retired to Edinburgh Zoo.","wiki":"https://en.wikipedia.org/wiki/Wojtek"},
+  {"real":true,"text":"In 1978 Argentina sent a pregnant woman to Antarctica so her baby would be the first human born on the continent, strengthening their territorial claim.","explain":"True. Emilio Marcos Palma was born at Esperanza Base in January 1978.","wiki":"https://en.wikipedia.org/wiki/Emilio_Palma"},
+  {"real":true,"text":"During the Vietnam War, the US military secretly seeded clouds over the Ho Chi Minh Trail to extend the monsoon season and wash out supply routes.","explain":"True. It was called Operation Popeye, and led to an international treaty banning weather warfare.","wiki":"https://en.wikipedia.org/wiki/Operation_Popeye"},
+  {"real":true,"text":"In 1989 Pepsi briefly became the sixth-largest military power in the world after the Soviet Union traded 17 submarines and three warships for Pepsi syrup.","explain":"True. Pepsi promptly sold the fleet to a Swedish company for scrap metal.","wiki":"https://en.wikipedia.org/wiki/PepsiCo"},
+  {"real":true,"text":"In 2007 the Swiss Army accidentally marched 170 armed soldiers across the border into Liechtenstein during a storm before realising they were in the wrong country.","explain":"True. Switzerland apologised, and Liechtenstein took it in good humour.","wiki":"https://en.wikipedia.org/wiki/Liechtenstein%E2%80%93Switzerland_relations"},
+  {"real":true,"text":"In the 1960s the Canadian government funded a device nicknamed the \"Fruit Machine\" to try to identify gay civil servants by measuring their pupil dilation.","explain":"True. It didn't work, though thousands of people still lost their jobs during the \"Lavender Scare\".","wiki":"https://en.wikipedia.org/wiki/Fruit_machine_(homosexuality_test)"},
+  {"real":true,"text":"In 1966 a group of Tongan schoolboys stole a boat, got shipwrecked on a deserted island, and survived together peacefully for 15 months until rescued.","explain":"True. Unlike \"Lord of the Flies\", they set up a commune, tended a garden, and cared for a boy who broke his leg.","wiki":"https://en.wikipedia.org/wiki/Tongan_castaways"},
+  {"real":true,"text":"In 1919 a massive storage tank burst in Boston, sending a 25-foot wave of molasses rushing through the streets at 35 mph.","explain":"True. Known as the Great Molasses Flood, it killed 21 people and flattened buildings.","wiki":"https://en.wikipedia.org/wiki/Great_Molasses_Flood"},
+  {"real":true,"text":"During the Cold War, the CIA smuggled banned copies of the novel \"Doctor Zhivago\" into the Soviet Union to spark anti-communist sentiment.","explain":"True. They even printed miniature editions designed to fit inside coat pockets.","wiki":"https://en.wikipedia.org/wiki/Doctor_Zhivago_(novel)"},
+  {"real":true,"text":"In 1974 archaeologists in China uncovered an army of over 8,000 life-sized terracotta soldiers buried to protect the tomb of the first Emperor.","explain":"True. Local farmers stumbled upon the Terracotta Army while digging a well.","wiki":"https://en.wikipedia.org/wiki/Terracotta_Army"},
+  {"real":true,"text":"In 1999 NASA lost a $125 million Mars orbiter because one engineering team used metric units while another used imperial inches and feet.","explain":"True. The Mars Climate Orbiter burned up in the Martian atmosphere.","wiki":"https://en.wikipedia.org/wiki/Mars_Climate_Orbiter"},
+  {"real":true,"text":"In 1923 a jockey named Frank Hayes won a horse race in New York despite having suffered a fatal heart attack mid-race.","explain":"True. He stayed in the saddle until his horse crossed the finish line.","wiki":"https://en.wikipedia.org/wiki/Frank_Hayes_(jockey)"},
+  {"real":true,"text":"In 1954 a Japanese fishing boat was showered with radioactive ash from a secret US hydrogen bomb test at Bikini Atoll, inspiring the creation of Godzilla.","explain":"True. The crew of the \"Lucky Dragon No. 5\" fell severely ill, sparking massive anti-nuclear protests in Japan.","wiki":"https://en.wikipedia.org/wiki/Daigo_Fukury%C5%AB_Maru"},
+  {"real":true,"text":"In 2011 a woman in Sweden accidentally found her lost wedding ring 16 years later growing around a carrot in her garden.","explain":"True. She had lost it while baking in 1995 and dropped it into vegetable peelings used for compost."},
+  {"real":true,"text":"In 1986 Lake Nyos in Cameroon suddenly released a massive cloud of deadly carbon dioxide gas, suffocating over 1,700 people in nearby villages overnight.","explain":"True. It was a rare natural disaster known as a limnic eruption.","wiki":"https://en.wikipedia.org/wiki/Lake_Nyos"},
+  {"real":true,"text":"In 1904 the Olympic marathon in St. Louis nearly killed the winner after officials gave him rat poison and brandy as performance enhancers.","explain":"True. Thomas Hicks was carried across the finish line by his trainers and survived.","wiki":"https://en.wikipedia.org/wiki/Thomas_Hicks_(athlete)"},
+  {"real":false,"text":"In 1974 NASA quietly added a \"greeting chamber\" to the Skylab space station in case astronauts met aliens.","explain":"Made up. No such room existed on Skylab."},
+  {"real":false,"text":"A 1952 US Air Force study found most UFO sightings happened on Tuesdays and recommended grounding pilots that day.","explain":"Made up. Project Blue Book was real, but this finding wasn't."},
+  {"real":false,"text":"After a Scottish fishing town all reported the same glowing triangle in 1983, the Ministry of Defence paid each resident £50 to stay quiet.","explain":"Made up. No town was ever paid to keep quiet."},
+  {"real":false,"text":"The Voyager Golden Record sent into space originally included a recipe for apple pie, which was removed at the last minute.","explain":"Made up. The Golden Record is real, but it had no recipes."},
+  {"real":false,"text":"In 1979 a Canadian university offered a degree in \"Extraterrestrial Diplomacy\", and three students graduated.","explain":"Made up. Nobody has graduated in alien diplomacy, yet."},
+  {"real":false,"text":"During the Cold War, MI5 trained hedgehogs to carry listening devices under the hedges of embassy gardens.","explain":"Made up. The CIA's cat was real; MI5's hedgehogs were not."},
+  {"real":false,"text":"In WWII, Britain trained parrots to memorise and repeat German radio codes.","explain":"Made up. Pigeons were used in WWII; parrots weren't."},
+  {"real":false,"text":"The KGB ran a fake ballet school in Paris to recruit dancers as spies.","explain":"Made up."},
+  {"real":false,"text":"In the 1970s the Pentagon funded research into whether soldiers could be kept awake for a week by playing recordings of laughter.","explain":"Made up. The psychic spies were real; this wasn't."},
+  {"real":false,"text":"In 1962 the Soviet Union trained seagulls to spot American submarines.","explain":"Made up."},
+  {"real":false,"text":"In the 1950s chewing gum makers secretly agreed to make gum lose its flavour faster so people would buy more.","explain":"Made up. The light bulb cartel was real, though."},
+  {"real":false,"text":"In 1931 pencil manufacturers agreed to make erasers wear out before the pencil did.","explain":"Made up."},
+  {"real":false,"text":"In 1971 a British tea company secretly switched to smaller leaves so its bags brewed weaker and people would use two.","explain":"Made up. If it were real, there'd have been a revolution."},
+  {"real":false,"text":"In 1965 umbrella makers agreed to weaken the spokes so umbrellas would break in strong wind.","explain":"Made up. Umbrellas just break on their own."},
+  {"real":false,"text":"In 1890 a Belgian town was gripped by uncontrollable hiccups that lasted six months.","explain":"Made up. A laughter epidemic happened in Tanzania in 1962, though."},
+  {"real":false,"text":"In 1932 the British Army was sent to a Scottish island to wipe out rabbits, and the rabbits won.","explain":"Made up. The Emu War was real; the Rabbit War wasn't."},
+  {"real":false,"text":"In 1956 a Dutch village set all its clocks to run backwards for a year as a protest.","explain":"Made up."},
+  {"real":false,"text":"In 1964 a Harvard psychologist taught a whole term without ever appearing in person. Students only heard his voice, and their exam scores went up.","explain":"Made up. It's a nice idea, though."},
+  {"real":false,"text":"In 1974 Swedish researchers paid volunteers to watch the same film every night for a month to see whether they'd fall asleep sooner each time.","explain":"Made up. The only thing it would have proved is that the film was boring."},
+  {"real":false,"text":"In the 1960s a Swiss linguist claimed bilingual people dream in a third, invented language, and the government funded a five-year study into it.","explain":"Made up. Bilingual brains do mix languages, though. It's called \"code-switching\"."},
+  {"real":false,"text":"In 1981 the French space agency accidentally broadcast a live cheese-making tutorial into deep space instead of a peace message.","explain":"Made up. If aliens ever reply, it'll probably be \"wrong number\"."},
+  {"real":false,"text":"In 1992 the Japanese government secretly funded a robot designed solely to bow slightly lower than foreign diplomats.","explain":"Made up. Polite, though."},
+  {"real":false,"text":"In 1973 Italian pasta makers held a secret summit in Naples to shorten spaghetti by two centimetres so people would eat bigger portions.","explain":"Made up. A secret Italian summit would have leaked within minutes."},
+  {"real":false,"text":"During the 1980s East German border guards used trained badgers to detect people digging tunnels under the Berlin Wall.","explain":"Made up. Guard dogs were used, not badgers."},
+  {"real":false,"text":"In 1968 an Australian weather station accidentally mistook a massive flock of migrating pelicans for a classified Soviet weather balloon.","explain":"Made up."},
+  {"real":false,"text":"In 1954 the Brazilian Navy spent three months firing warning shots at a floating iceberg that turned out to be a giant rogue foam mattress.","explain":"Made up."},
+  {"real":false,"text":"In 1976 Swiss watchmakers secretly agreed to make all quartz watches run three seconds fast per month so people would buy newer models.","explain":"Made up. Quartz watches are famously accurate."},
+  {"real":false,"text":"In 1985 a town in rural Spain banned whistling after residents became convinced it attracted stray weather balloons.","explain":"Made up."},
+  {"real":false,"text":"In 1969 Indian railway officials tested whether playing classical sitar music at stations would make commuters walk faster onto trains.","explain":"Made up. Though classical music is used to deter loitering in some stations today."},
+  {"real":false,"text":"In 1977 Denmark's meteorological institute quietly deleted February 30th from an old archive to cover up a forecasting mistake.","explain":"Made up. Sweden actually did have a February 30th in 1712, though!"},
+  {"real":false,"text":"In 1988 a South Korean electronics firm built a prototype TV that turned itself off if it detected the viewer had fallen asleep.","explain":"Made up. Sleep timers exist, but not mind-reading TVs."},
+  {"real":false,"text":"In 1961 a Norwegian fishing village convinced tourists that a local fjord contained a rare \"square-shaped\" herring.","explain":"Made up."},
+  {"real":false,"text":"In 1972 Mexican archaeologists briefly classified a buried 1950s hubcap as an ancient Aztec sun disc before realising their mistake.","explain":"Made up."},
+  {"real":false,"text":"In 1984 New Zealand's postal service trained border collies to sort parcels by sniffing out different types of glue.","explain":"Made up. Clever dogs, but not that clever."},
+  {"real":false,"text":"In 1967 a Viennese coffee house ran a secret experiment replacing decaf with regular espresso for a month to see if philosophers wrote faster.","explain":"Made up. The philosophers would have just argued about whether the experiment was real."},
+  {"real":false,"text":"During WWII, the Swiss Army trained St. Bernard dogs to carry tiny barrels of fondue to stranded mountain patrols.","explain":"Made up. Brandy barrels were a myth too—St. Bernards never carried barrels at all."},
+  {"real":false,"text":"In 1982 Argentina secretly built a giant papier-mâché aircraft carrier in the South Atlantic to fool British satellite surveillance.","explain":"Made up. Inflatable tanks were used in WWII, not fake carriers in the 80s."},
+  {"real":false,"text":"In 1971 the Soviet Union briefly traded 500 snowploughs to Cuba in exchange for three million crates of mangoes.","explain":"Made up. Though Pepsi really did get Soviet warships."},
+  {"real":false,"text":"In 1994 Iceland's government passed a law requiring all new roads to curve around large boulders in case they housed hidden elves.","explain":"Made up. Road projects have occasionally been altered due to local folklore, but there's no actual law."},
+  {"real":false,"text":"In 1963 a Canadian research team built a machine designed to detect lies by measuring changes in a person's ear temperature.","explain":"Made up."},
+  {"real":false,"text":"In 1928 a molasses factory in Antwerp exploded, coating the city's tram tracks and halting public transport for three weeks.","explain":"Made up. The Great Molasses Flood happened in Boston in 1919, not Belgium."},
+  {"real":false,"text":"During the Cold War, East Germany smuggled secret anti-Western messages inside sheet music exported to Viennese orchestras.","explain":"Made up."},
+  {"real":false,"text":"In 1987 a Mongolian postal service experiment tested using trained golden eagles to deliver urgent telegrams between remote yurts.","explain":"Made up. Eagles are used for hunting there, not post."},
+  {"real":false,"text":"In 2003 the European Space Agency lost a probe because one team programmed coordinates in degrees while another used percentage gradients.","explain":"Made up. NASA did lose a Mars orbiter over metric vs. imperial units, though."},
+  {"real":false,"text":"In 1951 an Egyptian museum curator accidentally locked himself inside a sarcophagus overnight and was rescued after tapping Morse code on the lid.","explain":"Made up."},
+  {"real":false,"text":"In 1979 Peru's tourism board briefly hired lookalikes to pose as ancient Incan guards at Machu Picchu to boost visitor numbers.","explain":"Made up."},
+  {"real":false,"text":"In 1965 a French cheese company secretly funded a study claiming Camembert improved short-term memory before exams.","explain":"Made up. If it worked, every student in France would have found out by now."},
+  {"real":false,"text":"In 1983 a Finnish sauna manufacturer recalled 4,000 units after discovering the thermostats were calibrated in Kelvin instead of Celsius.","explain":"Made up. 350 Kelvin is about 77°C, which would actually still work!"},
+  {"real":false,"text":"In 1959 a Portuguese fishing village held a three-day trial for a seagull accused of stealing the mayor's pocket watch.","explain":"Made up."},
+  {"real":false,"text":"In 1991 a South African diamond mine briefly shut down after workers refused to enter a tunnel they believed was haunted by a Victorian opera singer.","explain":"Made up."},
 ];
+// </claims>
 
 /* ===================== end of editable constants ===================== */
 
@@ -167,7 +241,32 @@ const saveName = (name) => {
 };
 const cleanName = (s) => s.trim().replace(/\s+/g, " ");
 
-const state = { phase: "start", name: cleanName(loadName()) || DEFAULT_NAME, deck: [], index: 0, score: 0, answer: null };
+const ROUNDS_KEY = "conspiracy-or-real-rounds";
+const maxRounds = CLAIMS.length;
+const roundOptions = [...new Set(ROUND_CHOICES.map((n) => Math.min(n, maxRounds)))];
+const loadRounds = () => {
+  try {
+    const n = Number(localStorage.getItem(ROUNDS_KEY));
+    return roundOptions.includes(n) ? n : 0;
+  } catch {
+    return 0;
+  }
+};
+const saveRounds = (n) => {
+  try {
+    localStorage.setItem(ROUNDS_KEY, n);
+  } catch {}
+};
+
+const state = {
+  phase: "start",
+  name: cleanName(loadName()) || DEFAULT_NAME,
+  rounds: loadRounds() || roundOptions.find((n) => n >= DEFAULT_ROUNDS) || roundOptions[roundOptions.length - 1],
+  deck: [],
+  index: 0,
+  score: 0,
+  answer: null,
+};
 let revealedAt = 0;
 
 const shuffle = (a) => {
@@ -177,15 +276,29 @@ const shuffle = (a) => {
   }
   return a;
 };
-const pick = (real, n) => shuffle(CLAIMS.filter((c) => c.real === real)).slice(0, n);
-const buildDeck = () => shuffle([...pick(true, REAL_PER_GAME), ...pick(false, FAKE_PER_GAME)]);
-const rankFor = (score) => (RANKS.find((r) => r.max >= score) || RANKS[RANKS.length - 1]).title;
+// Half real, half made up. With an odd count the extra one goes to a random side.
+// If one side runs short, the other fills the gap, so the deck is always `rounds` long.
+const buildDeck = (rounds) => {
+  const real = shuffle(CLAIMS.filter((c) => c.real));
+  const fake = shuffle(CLAIMS.filter((c) => !c.real));
+  const want = Math.floor(rounds / 2) + (rounds % 2 && Math.random() < 0.5 ? 1 : 0);
+  const nReal = Math.min(real.length, Math.max(want, rounds - fake.length));
+  return shuffle([...real.slice(0, nReal), ...fake.slice(0, rounds - nReal)]);
+};
+const rankFor = (score, total) => (RANKS.find((r) => r.max >= score / total) || RANKS[RANKS.length - 1]).title;
+
+function setRounds(n) {
+  if (state.phase !== "start" || !roundOptions.includes(n)) return false;
+  state.rounds = n;
+  saveRounds(n);
+  return true;
+}
 
 function start(rawName) {
   if (state.phase !== "start") return false;
   const typed = cleanName(rawName);
   saveName(typed);
-  Object.assign(state, { phase: "question", name: typed || DEFAULT_NAME, deck: buildDeck(), index: 0, score: 0, answer: null });
+  Object.assign(state, { phase: "question", name: typed || DEFAULT_NAME, deck: buildDeck(state.rounds), index: 0, score: 0, answer: null });
   return true;
 }
 
@@ -231,6 +344,8 @@ const NAME_SLOT = '<span data-name></span>';
 const withName = (text) => text.replace(/\{name\}/g, NAME_SLOT);
 const plainName = (text) => text.replace(/\{name\}/g, () => state.name);
 
+const wikiLink = (c) => (c.wiki ? `<p class="wiki"><a href="${c.wiki}" target="_blank" rel="noopener noreferrer">Read more on Wikipedia ↗</a></p>` : "");
+
 const claimCard = (extra = "") => {
   const c = state.deck[state.index];
   return `<section class="card${state.phase === "question" ? " enter" : ""}" data-tab="FILE ${String(state.index + 1).padStart(2, "0")}"${state.phase === "question" ? " data-f" : ""} tabindex="-1">
@@ -243,7 +358,9 @@ const views = {
 <h1>Conspiracy or Real? — The ${NAME_SLOT} Files</h1>
 <p>Some of these really happened. Some we made up. Trust no one.</p>
 <div class="field"><label for="name">Your name, agent</label>
-<input id="name" type="text" maxlength="24" autocomplete="given-name" autocapitalize="words" enterkeyhint="go"></div></section>
+<input id="name" type="text" maxlength="24" autocomplete="given-name" autocapitalize="words" enterkeyhint="go"></div>
+<div class="field" role="group" aria-labelledby="rounds-label"><span id="rounds-label" class="lbl">How many cases?</span>
+<div class="rounds">${roundOptions.map((n) => `<button type="button" class="round" data-act="rounds" data-v="${n}" aria-pressed="${n === state.rounds}">${n}</button>`).join("")}</div></div></section>
 <button class="btn primary" data-act="start">Start</button>`,
 
   question: () => `${hud()}${claimCard()}
@@ -256,7 +373,7 @@ const views = {
     const right = state.answer === c.real;
     const last = state.index === state.deck.length - 1;
     return `${hud()}${claimCard(`<div class="stamp${c.real ? "" : " blue"}">${c.real ? "DECLASSIFIED" : "DEBUNKED"}</div>
-<p class="verdict ${right ? "ok" : "no"}">${verdict()}</p><p class="explain">${withName(c.explain)}</p>`)}
+<p class="verdict ${right ? "ok" : "no"}">${verdict()}</p><p class="explain">${withName(c.explain)}</p>${wikiLink(c)}`)}
 <button class="btn primary" data-act="next" data-f>${last ? "See my file 📂" : "Next"}</button>`;
   },
 
@@ -264,7 +381,7 @@ const views = {
 <div class="stamp">CASE CLOSED</div>
 <p class="sub">${NAME_SLOT}'s final file</p>
 <p class="big">${state.score}/${state.deck.length}</p>
-<h2>${rankFor(state.score)}</h2></section>
+<h2>${rankFor(state.score, state.deck.length)}</h2></section>
 <button class="btn primary" data-act="again">Play again</button>
 <button class="btn ghost" data-act="copy">Copy my score</button>`,
 };
@@ -293,6 +410,7 @@ function render() {
 /* events */
 const actions = {
   start: () => start(document.getElementById("name").value),
+  rounds: (btn) => setRounds(Number(btn.dataset.v)),
   again,
   answer: (btn) => answer(btn.dataset.v === "1"),
   next,
@@ -336,7 +454,7 @@ function run(btn) {
   if (btn.dataset.act === "copy") return copyScore(btn);
   if (actions[btn.dataset.act](btn)) {
     render();
-    const f = app.querySelector("[data-f]");
+    const f = btn.dataset.act === "rounds" ? app.querySelector(`[data-act="rounds"][data-v="${btn.dataset.v}"]`) : app.querySelector("[data-f]");
     if (f) f.focus();
   }
 }
